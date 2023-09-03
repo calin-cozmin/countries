@@ -15,9 +15,9 @@ namespace countries.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCountries()
+        public async Task<IActionResult> GetAllCountries([FromQuery] string? countryName)
         {
-            var countries = await _countryService.GetAllCountriesAsync();
+            var countries = await _countryService.GetAllCountriesAsync(countryName);
             if (countries == null)
             {
                 return NotFound();
@@ -26,5 +26,4 @@ namespace countries.Controllers
             return Ok(countries);
         }
     }
-
 }

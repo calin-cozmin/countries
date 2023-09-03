@@ -15,7 +15,7 @@ namespace countries.Services
             _logger = logger;
         }
 
-        public async Task<List<Country>> GetAllCountriesAsync()
+        public async Task<List<Country>> GetAllCountriesAsync(string? countryName = null)
         {
             try
             {
@@ -39,6 +39,14 @@ namespace countries.Services
                             {
                                 _logger.LogWarning("Received null or empty data during deserialization.");
                                 throw new InvalidOperationException("Data could not be fetched or was empty.");
+                            }
+
+                            // Apply the filter for country name here, if provided.
+                            if (!string.IsNullOrEmpty(countryName))
+                            {
+                                countries = countries.Where(c => c.Name?.Common != null &&
+                                                                 c.Name.Common.IndexOf(countryName, StringComparison.OrdinalIgnoreCase) >= 0)
+                                                     .ToList();
                             }
 
                             return countries;
