@@ -1,0 +1,27 @@
+name: SonarCloud Scan
+on:
+  push:
+    branches:
+      - main # or your default branch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x' # Your .NET version
+    - name: Install SonarCloud Scanner
+      run: dotnet tool install --global dotnet-sonarscanner
+    - name: Build and analyze
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+      run: |
+        # export PATH="$PATH:/root/.dotnet/tools"
+        # dotnet sonarscanner begin /k:"Your-Project-Key" /o:"Your-Organization-Key" /d:sonar.login="$SONAR_TOKEN"
+        # dotnet build YourSolution.sln
+        # dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
