@@ -1,5 +1,6 @@
-﻿using countries.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using countries.Models;
+using countries.Services.Interfaces;
 
 namespace countries.Controllers
 {
@@ -8,28 +9,29 @@ namespace countries.Controllers
     public class CountriesController : ControllerBase
     {
         private readonly ICountryService _countryService;
+        private readonly ILogger<CountriesController> _logger;
 
-        public CountriesController(ICountryService countryService)
+        public CountriesController(ICountryService countryService, ILogger<CountriesController> logger)
         {
-            _countryService = countryService;
+            _countryService = countryService ?? throw new ArgumentNullException(nameof(countryService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCountries([FromQuery] string? countryName, [FromQuery] int? maxPopulation)
+        public async Task<ActionResult<List<Country>>> GetAllCountries(
+            [FromQuery] string? countryName,
+            [FromQuery] int? maxPopulation,
+            [FromQuery] string? sort)
         {
             try
             {
-                var countries = await _countryService.GetAllCountriesAsync(countryName, maxPopulation);
-                if (countries == null || !countries.Any())
-                {
-                    return NotFound("No countries match the given criteria.");
-                }
-
+                var countries = await _countryService.GetAllCountriesAsync(countryName, maxPopulation, sort);
                 return Ok(countries);
             }
             catch (Exception ex)
             {
-                return BadRequest($"An error occurred: {ex.Message}");
+                _logger.LogError($"Failed to get countries: {ex.Message}");
+                return BadRequest("An error occurred while fetching country data.");
             }
         }
     }
