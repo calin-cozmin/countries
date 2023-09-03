@@ -18,7 +18,7 @@ namespace countries.Services
             _logger = logger;
         }
 
-        public async Task<List<Country>> GetAllCountriesAsync(string? countryName = null, int? maxPopulation = null, string? sort = null)
+        public async Task<List<Country>> GetAllCountriesAsync(string? countryName = null, int? maxPopulation = null, string? sort = null, int? take = null)
         {
             try
             {
@@ -44,6 +44,7 @@ namespace countries.Services
                         countries = FilterCountriesByName(countries, countryName);
                         countries = FilterCountriesByMaxPopulation(countries, maxPopulation);
                         countries = SortCountries(countries, sort);
+                        countries = LimitCountries(countries, take);
 
                         return countries;
                     }
@@ -61,7 +62,7 @@ namespace countries.Services
             if (!string.IsNullOrEmpty(countryName))
             {
                 return countries.Where(c => c.Name?.Common != null &&
-                                             c.Name.Common.Contains(countryName, StringComparison.Ordinal))
+                                             c.Name.Common.Contains(countryName, StringComparison.OrdinalIgnoreCase))
                                 .ToList();
             }
             return countries;
@@ -101,6 +102,16 @@ namespace countries.Services
                     _logger.LogWarning("Invalid sort parameter provided.");
                     throw new ArgumentException("Invalid sort parameter. Use 'ascend' or 'descend'.");
                 }
+            }
+
+            return countries;
+        }
+
+        private List<Country> LimitCountries(List<Country> countries, int? take)
+        {
+            if (take.HasValue)
+            {
+                return countries.Take(take.Value).ToList();
             }
 
             return countries;

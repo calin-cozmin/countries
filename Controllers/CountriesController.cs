@@ -21,11 +21,12 @@ namespace countries.Controllers
         public async Task<ActionResult<List<Country>>> GetAllCountries(
             [FromQuery] string? countryName,
             [FromQuery] int? maxPopulation,
-            [FromQuery] string? sort)
+            [FromQuery] string? sort,
+            [FromQuery] int? take)
         {
             try
             {
-                var countries = await _countryService.GetAllCountriesAsync(countryName, maxPopulation, sort);
+                var countries = await _countryService.GetAllCountriesAsync(countryName, maxPopulation, sort, take);
                 return Ok(countries);
             }
             catch (Exception ex)
