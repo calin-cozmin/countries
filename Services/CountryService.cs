@@ -15,15 +15,14 @@ namespace countries.Services
             _logger = logger;
         }
 
-        public async Task<List<Country>> GetAllCountriesAsync(string? countryName = null)
+        public async Task<List<Country>> GetAllCountriesAsync(string? countryName = null, int? maxPopulation = null)
         {
             try
             {
                 using (var response = await _httpClient.GetAsync("https://restcountries.com/v3.1/all"))
                 {
-                    response.EnsureSuccessStatusCode(); // throws HttpRequestException if not successful
+                    response.EnsureSuccessStatusCode(); 
 
-                    // Read directly from the response stream
                     using (var stream = await response.Content.ReadAsStreamAsync())
                     {
                         try
@@ -41,13 +40,14 @@ namespace countries.Services
                                 throw new InvalidOperationException("Data could not be fetched or was empty.");
                             }
 
-                            // Apply the filter for country name here, if provided.
                             if (!string.IsNullOrEmpty(countryName))
                             {
                                 countries = countries.Where(c => c.Name?.Common != null &&
                                                                  c.Name.Common.IndexOf(countryName, StringComparison.OrdinalIgnoreCase) >= 0)
                                                      .ToList();
                             }
+
+                            countries = FilterCountriesByMaxPopulation(countries, maxPopulation);
 
                             return countries;
                         }
@@ -64,6 +64,23 @@ namespace countries.Services
                 _logger.LogError($"An error occurred while fetching countries: {httpRequestException.Message}");
                 throw;
             }
+        }
+
+        private List<Country> FilterCountriesByMaxPopulation(List<Country> countries, int? maxPopulation)
+        {
+            if (maxPopulation.HasValue)
+            {
+                if (maxPopulation.Value < 0)
+                {
+                    _logger.LogWarning("Negative maxPopulation value provided.");
+                    throw new ArgumentException("maxPopulation must be a non-negative integer.");
+                }
+
+                int populationLimit = maxPopulation.Value * 1_000_000; 
+                return countries.Where(c => c.Population < populationLimit).ToList();
+            }
+
+            return countries; 
         }
     }
 }

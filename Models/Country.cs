@@ -6,6 +6,9 @@
     {
         [JsonPropertyName("name")]
         public Name? Name { get; set; }
+
+        [JsonPropertyName("population")]
+        public int? Population { get; set; }
     }
 
     public class Name

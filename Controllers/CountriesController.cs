@@ -15,15 +15,22 @@ namespace countries.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCountries([FromQuery] string? countryName)
+        public async Task<IActionResult> GetAllCountries([FromQuery] string? countryName, [FromQuery] int? maxPopulation)
         {
-            var countries = await _countryService.GetAllCountriesAsync(countryName);
-            if (countries == null)
+            try
             {
-                return NotFound();
-            }
+                var countries = await _countryService.GetAllCountriesAsync(countryName, maxPopulation);
+                if (countries == null || !countries.Any())
+                {
+                    return NotFound("No countries match the given criteria.");
+                }
 
-            return Ok(countries);
+                return Ok(countries);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
         }
     }
 }
